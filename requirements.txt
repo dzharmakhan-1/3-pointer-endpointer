@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pandas
+sqlalchemy
+psycopg2-binary
+boto3
+celery
+python-multipart
+requests
+markdown
+groq
+pyarrow
+fastparquet

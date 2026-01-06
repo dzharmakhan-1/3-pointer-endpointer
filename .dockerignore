@@ -1,0 +1,25 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+ENV/
+.env
+.git
+.gitignore
+*.log
+.vscode/
+.idea/
+.DS_Store
+README.md  # if you have one that's not needed in image
+tests/
+htmlcov/
+.coverage
+.tox/
+.nox/
+pgdata/
+celerybeat-schedule
+celerybeat.pid
