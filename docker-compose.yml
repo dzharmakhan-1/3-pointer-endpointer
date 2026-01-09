@@ -33,11 +33,11 @@ services:
 
   postgres:
     image: postgres:latest
-    container_name: taxi_postgres
+    container_name: CONTAINER
     environment:
-      POSTGRES_DB: taxi_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Belka1337228!
+      POSTGRES_DB: DB
+      POSTGRES_USER: USER
+      POSTGRES_PASSWORD: PASSWORD
     ports:
       - "5434:5432"  # ← Changed back to 5433 to match your app's connection string
     volumes:
