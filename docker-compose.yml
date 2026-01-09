@@ -39,9 +39,9 @@ services:
       POSTGRES_USER: USER
       POSTGRES_PASSWORD: PASSWORD
     ports:
-      - "5434:5432"  # ← Changed back to 5433 to match your app's connection string
+      - "5434:5432"
     volumes:
-      - pgdata:/var/lib/postgresql  # ← FIXED: mount the parent directory
+      - pgdata:/var/lib/postgresql
 
 volumes:
   pgdata:
