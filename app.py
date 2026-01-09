@@ -25,10 +25,10 @@ s3_client = boto3.client('s3')
 @app.post("/upload")
 async def upload(
     file: UploadFile = File(...),
-    table_name: str = "yellow_taxi_trips",
+    table_name: str = "table_name",
     append: bool = True,
-    bucket_name: str = "taxi-bucket-vladyka",
-    s3_prefix: str = "raw_taxi_data/"
+    bucket_name: str = "bucket_name",
+    s3_prefix: str = "extra_folder_if_needed/"
 ):
     if not file.filename.endswith(".parquet"):
         raise HTTPException(status_code=400, detail="Only .parquet files are allowed")
