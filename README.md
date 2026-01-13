@@ -131,6 +131,7 @@ docker-compose up --build
 ![S3](./screenshots/2.png)
 ![Task Status](./screenshots/3.png)
 ![PostgreSQL Table](./screenshots/4.png)
-![PowerBI](./screenshots/5.png)
+![PowerBI](./screenshots/7.png)
 ![PostgreSQL JSON Report](./screenshots/6.png)
+
 
