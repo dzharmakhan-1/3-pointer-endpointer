@@ -14,7 +14,7 @@ All orchestrated through a modern **FastAPI** web interface.
 
 - **File Upload & Triggered ETL** — Upload `.parquet` → automatic cleaning & loading to PostgreSQL
 - **Asynchronous Task Processing** — Celery workers + RabbitMQ broker
-- **Task Status Monitoring** — Real-time status (queued / pending / success / failed)
+- **Task Status Monitoring** — Real-time status (queued / pending / success / failed) in **Postman or Swagger**
 - **AI-Powered Insights** — Upload Power BI screenshot → Groq generates intelligent report
 - **Fully Dockerized** — Easy one-command local & production deployment
 - **Production-ready structure** — Environment variables, logging, error handling
@@ -133,3 +133,4 @@ docker-compose up --build
 ![PostgreSQL Table](./screenshots/4.png)
 ![PowerBI](./screenshots/5.png)
 ![PostgreSQL JSON Report](./screenshots/6.png)
+
