@@ -1,137 +1,79 @@
-# **Automated Data Warehouse Pipeline for NYC Yellow Taxi Data with AI-Powered Dashboard Analysis**
+# NYC Yellow Taxi Data Processor
 
-A complete, containerized **end-to-end data warehousing solution** that:
+FastAPI + Celery pipeline that ingests parquet taxi trip files, cleans them, and loads them into Postgres. It also includes a Groq-powered dashboard screenshot analysis endpoint.
 
-- Ingests raw NYC Yellow Taxi `.parquet` files from AWS S3
-- Performs automated ETL using **Celery + RabbitMQ**
-- Stores cleaned data in **PostgreSQL**
-- Enables interactive dashboard creation in **Power BI**
-- Uses **Groq API** to automatically analyze dashboard screenshots and generate natural-language insights
+## What it does
+- Uploads `.parquet` files and stores them in S3
+- Queues a Celery task to clean and load data into Postgres
+- Auto-loads a taxi zones dimension table on startup
+- Analyzes dashboard screenshots with Groq and optionally saves results to Postgres
 
-All orchestrated through a modern **FastAPI** web interface.
+## Stack
+- API: FastAPI + Uvicorn
+- Worker: Celery
+- Broker: RabbitMQ
+- Storage: S3 + Postgres
+- AI: Groq API (vision model)
 
-## ✨ Key Features
+## Services (docker-compose)
+- `api`: FastAPI app on `http://localhost:8000`
+- `worker`: Celery worker
+- `rabbitmq`: RabbitMQ broker (`5672` + management UI `15672`)
+- `postgres`: Postgres on host port `5434`
 
-- **File Upload & Triggered ETL** — Upload `.parquet` → automatic cleaning & loading to PostgreSQL
-- **Asynchronous Task Processing** — Celery workers + RabbitMQ broker
-- **Task Status Monitoring** — Real-time status (queued / pending / success / failed) in **Postman or Swagger**
-- **AI-Powered Insights** — Upload Power BI screenshot → Groq generates intelligent report
-- **Fully Dockerized** — Easy one-command local & production deployment
-- **Production-ready structure** — Environment variables, logging, error handling
+## Configuration
+Create a `.env` file (values shown are placeholders):
 
-## 🛠️ Tech Stack
-
-| Component              | Technology                  | Purpose                              |
-|------------------------|-----------------------------|--------------------------------------|
-| API / Web Interface    | FastAPI + Swagger UI        | File upload, task status, AI endpoint|
-| Message Broker         | RabbitMQ                    | Task queuing                         |
-| Task Queue / Workers   | Celery                      | Asynchronous ETL jobs                |
-| Storage (raw)          | AWS S3                      | Backup & source parquet files        |
-| Data Warehouse         | PostgreSQL 16+              | Structured & analysis-ready data     |
-| Dashboarding           | Power BI                    | Visual analytics                     |
-| AI Report Generation   | Groq API                    | Natural language dashboard insights  |
-| Containerization       | Docker + Docker Compose     | Reproducible environment             |
-
-## 📁 Project Structure
-
-```
-3-pointer-endpointer/
-├── app.py                  # FastAPI application (main entry point)
-├── tasks.py                # Celery tasks — ETL logic
-├── celery_config.py        # Celery configuration & broker settings
-├── dockerfile              # Python service build instructions
-├── docker-compose.yml      # Orchestrates all services
-├── requirements.txt        # Python dependencies
-├── .env.example            # Template for environment variables
-├── HOWITWORKS.md           # Detailed internal architecture explanation
-├── screenshots/            # UI + workflow screenshots
-└── README.md
-```
-## 🚀 Quick Start (Docker Recommended)
-
-### Prerequisites
-
-- Docker & Docker Compose
-- AWS S3 bucket with NYC taxi `.parquet` files
-- Groq API key
-- PostgreSQL client (optional, for manual checks)
-
-### 1. Clone & Prepare
-
-```bash
-git clone https://github.com/dzharmakhan-1/3-pointer-endpointer.git
-cd 3-pointer-endpointer
-```
-### 2. Configure Environment
-```bash
-cp .env.example .env
-```
-### In .env file add:
-### AWS
-```
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
-AWS_S3_BUCKET=your-nyc-taxi-bucket
-AWS_REGION=us-east-1
-```
-### PostgreSQL
-```
+```env
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_secure_password
-POSTGRES_DB=nyc_taxi_dw
-POSTGRES_HOST=db
-```
-### RabbitMQ (usually no need to change)
-```
-RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672//
-```
-### Groq
-```
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-### 3. Create the reports table (one-time)
-```SQL
-CREATE TABLE dashboard_analysis_reports (
-    id SERIAL PRIMARY KEY,
-    screenshot_filename VARCHAR(255) NOT NULL,
-    report_json JSONB NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    note TEXT
-);
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=taxi_db
+DATABASE_URL=postgresql://postgres:your_password@postgres:5432/taxi_db
 
-CREATE INDEX idx_dashboard_reports_filename ON dashboard_analysis_reports(screenshot_filename);
-CREATE INDEX idx_dashboard_reports_created_at ON dashboard_analysis_reports(created_at);
+GROQ_API_KEY=your_groq_key
+
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_DEFAULT_REGION=your_region
 ```
-### 4. Start the docker
+
+Defaults used in code:
+- S3 bucket: `taxi-bucket-vladyka`
+- S3 prefix: `raw_taxi_data/`
+- Table: `yellow_taxi_trips`
+
+If your bucket or table differs, update `app.py`.
+
+## Running locally
 ```bash
 docker-compose up --build
 ```
-### Services will be available at:
 
-- FastAPI UI → http://localhost:8000 (Swagger docs at http://localhost:8000/docs)
-- RabbitMQ Management → http://localhost:15672 (guest/guest)
-- PostgreSQL → localhost:5432
+API base URL: `http://localhost:8000`
 
-## 📊 How It Works (Workflow)
+## Key endpoints
+- `GET /health`: liveness probe
+- `GET /ready`: readiness probe (DB check)
+- `POST /upload`: upload a parquet file to S3 and queue processing
+- `GET /task-status/{task_id}`: check Celery task status
+- `POST /analyze-dashboard`: analyze one or more dashboard images
 
-- Upload NYC Yellow Taxi .parquet file via FastAPI /upload
-- File is stored in S3
-- RabbitMQ triggers Celery ETL task (tasks.py)
-- Data is cleaned & loaded into PostgreSQL dimensional model
-- Build dashboard in Power BI using PostgreSQL connection
-- Take screenshot → upload via /analyze-dashboard
-- Groq generates natural-language summary/report
-- Report is saved as JSONB in dashboard_analysis_reports
+### Example: upload parquet
+```bash
+curl -F "file=@your_file.parquet" http://localhost:8000/upload
+```
 
-→ Check results in PostgreSQL or (optional) download HTML version
+### Example: analyze dashboard screenshots
+```bash
+curl -F "files=@dash1.png" -F "files=@dash2.png" http://localhost:8000/analyze-dashboard
+```
 
-## 📸 Screenshots
-### Here are some examples of the UI and workflow:
-![Swagger](./screenshots/1.png)
-![S3](./screenshots/2.png)
-![Task Status](./screenshots/3.png)
-![PostgreSQL Table](./screenshots/4.png)
-![PowerBI](./screenshots/7.png)
-![PostgreSQL JSON Report](./screenshots/6.png)
+## Data flow (short)
+1. `POST /upload` -> S3 upload
+2. Celery task reads parquet from S3
+3. Task cleans and loads rows into Postgres
+4. API can report task status
 
-
+## Notes
+- `dim_taxi_zones` is auto-loaded on startup if missing or empty.
+- The worker expects RabbitMQ and Postgres to be reachable via Docker service names.
