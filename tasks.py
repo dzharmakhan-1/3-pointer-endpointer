@@ -91,4 +91,3 @@ def process_taxi_from_s3(bucket_name: str, s3_key: str, table_name: str = "yello
         return {"status": "error", "error": f"S3 download error: {str(e)}"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
-    
